@@ -1,0 +1,72 @@
+services: 
+    mysql: 
+        container_name: mysql
+        platform: linux/x86_64
+        image: jayzanoaa/mysql:latest
+        ports:
+            - "3307:3306"
+        restart: always
+        volumes: 
+            - ./mysql/db:/docker-entrypoint-initdb.d
+            - ./mysql/conf.d:/etc/mysql/conf.d
+            - ./mysql/data:/var/lib/mysql
+        env_file:
+            - ./mysql/local.env
+        networks: 
+            - app_network
+
+    pythonapp:
+        depends_on:
+            - mysql
+        container_name: pythonapp
+        platform: linux/x86_64
+        image: jayzanoaa/pythonapp:latest
+        restart: always
+        ports:
+            - "5000:5000"
+        networks:
+            - app_network
+
+    backendapp:
+        depends_on:
+            - mysql
+            - pythonapp
+        container_name: backendapp
+        platform: linux/x86_64
+        image: jayzanoaa/backendapp:latest
+        restart: always
+        ports:
+            - "8080:8080"
+        networks:
+            - app_network
+
+    frontendapp:
+        depends_on:
+            - mysql
+            - pythonapp
+            - backendapp
+        container_name: frontendapp
+        platform: linux/x86_64
+        image: jayzanoaa/frontendapp:latest
+        restart: always
+        ports:
+            - "4200:80"
+        networks:
+            - app_network
+    
+    nginx:
+        container_name: nginx
+        image: nginx:1-alpine
+        restart: always
+        ports:
+            - "80:80"
+        depends_on:
+            - frontendapp
+            - backendapp
+        volumes:
+            - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+        networks:
+            - app_network
+
+networks:
+    app_network:
