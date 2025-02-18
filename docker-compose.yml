@@ -2,8 +2,9 @@ services:
     mysql: 
         container_name: mysql
         platform: linux/x86_64
-        image: jayzanoaa/mysql:latest
+        build: ./mysql/
         ports:
+            #"Puerto externo:Puerto Interno"
             - "3307:3306"
         restart: always
         volumes: 
